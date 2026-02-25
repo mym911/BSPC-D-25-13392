@@ -1,23 +1,24 @@
-# brain_completion_refactor
+# DAC-FedGraph (refactored for review)
 
-Refactor of the monolithic cGAN imputation script into modules.
+This package reorganizes the main federated learning script into importable modules for easier review and maintenance.
 
-## Modules
-- `configs.py`: ModelConfig / DatasetConfig (phenotype column mapping supports ABIDE/ADHD)
-- `data.py`: CSV loader, dataset, collate, normalization
-- `masks.py`: MCAR + structured missingness (mcar/roi_weighted/cluster/block)
-- `models.py`: Generator / Discriminator
-- `metrics.py`: R² (global denominator, paper-compatible)
-- `trainer.py`: training + kfold + stress tests, writes `ab_stress_fold*.csv` and `ab_stress_summary.csv`
-- `tester.py`: real-missing imputation using `roi_completion_best.pth`
+## Layout
+- `dac_fedgraph/configs.py`: path + training hyper-parameters
+- `dac_fedgraph/utils.py`: seeding, logging, device helpers
+- `dac_fedgraph/metrics.py`: evaluation utilities (AUC/F1 helpers, calibration metrics)
+- `dac_fedgraph/models.py`: GATv2-based graph classifier and auxiliary modules
+- `dac_fedgraph/data_handler.py`: feature preprocessing and graph construction
+- `dac_fedgraph/federated.py`: Client/Server logic and aggregation
+- `dac_fedgraph/experiment.py`: experiment runner (cross-validation over seeds)
+- `scripts/run_fedgraph.py`: CLI entry point
 
-## Run
-Train (kfold + stress tests):
+## Run (example)
 ```bash
-python scripts/run_train_cv.py --phenotypic_csv ... --train_root ... --test_root ... --atlas_type aal --model_dir models
+python scripts/run_fedgraph.py \
+  --phenotypic_csv /path/to/phenotypic.csv \
+  --ts_dir_aal /path/to/AAL_csv \
+  --ts_dir_sch /path/to/SCH_csv \
+  --out_csv run_summaries.csv
 ```
 
-Impute real-missing test set:
-```bash
-python scripts/run_impute_real.py --phenotypic_csv ... --train_root ... --test_root ... --atlas_type aal --model_path models/roi_completion_best.pth --out_dir out_csv
-```
+Adjust CLI arguments (rounds/clients/splits) as needed.
